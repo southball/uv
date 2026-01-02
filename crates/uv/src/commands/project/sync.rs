@@ -809,6 +809,7 @@ pub(super) async fn do_sync(
         &client,
         cache,
         &build_constraints,
+        None, // package_constraints - not yet integrated
         venv.interpreter(),
         index_locations,
         &flat_index,

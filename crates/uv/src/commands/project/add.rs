@@ -458,6 +458,7 @@ pub(crate) async fn add(
                 &client,
                 cache,
                 &build_constraints,
+                None, // package_constraints - not yet integrated
                 target.interpreter(),
                 &settings.resolver.index_locations,
                 &flat_index,

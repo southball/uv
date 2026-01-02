@@ -112,10 +112,14 @@ pub trait BuildContext {
     fn extra_build_variables(&self) -> &ExtraBuildVariables;
 
     /// Resolve the given requirements into a ready-to-install set of package versions.
+    ///
+    /// The `for_package` parameter specifies the package being built, which is used to apply
+    /// package-specific build constraints.
     fn resolve<'a>(
         &'a self,
         requirements: &'a [Requirement],
         build_stack: &'a BuildStack,
+        for_package: Option<&'a PackageName>,
     ) -> impl Future<Output = Result<Resolution, impl IsBuildBackendError>> + 'a;
 
     /// Install the given set of package versions into the virtual environment. The environment must

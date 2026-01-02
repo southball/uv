@@ -386,6 +386,7 @@ impl SourceBuild {
                 &pep517_backend,
                 extra_build_dependencies,
                 build_stack,
+                package_name.as_ref(),
             )
             .await?;
 
@@ -513,6 +514,7 @@ impl SourceBuild {
         pep517_backend: &Pep517Backend,
         extra_build_dependencies: Vec<Requirement>,
         build_stack: &BuildStack,
+        for_package: Option<&PackageName>,
     ) -> Result<Resolution, Error> {
         Ok(
             if pep517_backend.requirements == DEFAULT_BACKEND.requirements
@@ -522,12 +524,12 @@ impl SourceBuild {
                 if let Some(resolved_requirements) = &*resolution {
                     resolved_requirements.clone()
                 } else {
-                    let resolved_requirements = build_context
-                        .resolve(&DEFAULT_BACKEND.requirements, build_stack)
-                        .await
-                        .map_err(|err| {
-                            Error::RequirementsResolve("`setup.py` build", err.into())
-                        })?;
+                        let resolved_requirements = build_context
+                            .resolve(&DEFAULT_BACKEND.requirements, build_stack, None)
+                            .await
+                            .map_err(|err| {
+                                Error::RequirementsResolve("`setup.py` build", err.into())
+                            })?;
                     *resolution = Some(resolved_requirements.clone());
                     resolved_requirements
                 }
@@ -548,7 +550,7 @@ impl SourceBuild {
                     )
                 };
                 build_context
-                    .resolve(&requirements, build_stack)
+                    .resolve(&requirements, build_stack, for_package)
                     .await
                     .map_err(|err| Error::RequirementsResolve(dependency_sources, err.into()))?
             },
@@ -1085,7 +1087,7 @@ async fn create_pep517_build_environment(
             .chain(extra_requires)
             .collect();
         let resolution = build_context
-            .resolve(&requirements, build_stack)
+            .resolve(&requirements, build_stack, package_name)
             .await
             .map_err(|err| {
                 Error::RequirementsResolve("`build-system.requires`", AnyErrorBuild::from(err))

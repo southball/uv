@@ -478,6 +478,7 @@ pub(crate) async fn pip_install(
         &client,
         &cache,
         &build_constraints,
+        None, // package_constraints - not yet integrated
         interpreter,
         &index_locations,
         &flat_index,
@@ -632,6 +633,7 @@ pub(crate) async fn pip_install(
         &client,
         &cache,
         &build_constraints,
+        None, // package_constraints - not yet integrated
         interpreter,
         &index_locations,
         &flat_index,

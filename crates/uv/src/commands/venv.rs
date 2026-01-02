@@ -259,6 +259,7 @@ pub(crate) async fn venv(
             &client,
             cache,
             &build_constraints,
+            None, // package_constraints - not yet integrated
             interpreter,
             index_locations,
             &flat_index,
@@ -301,7 +302,7 @@ pub(crate) async fn venv(
         // Since the virtual environment is empty, and the set of requirements is trivial (no
         // constraints, no editables, etc.), we can use the build dispatch APIs directly.
         let resolution = build_dispatch
-            .resolve(&requirements, &build_stack)
+            .resolve(&requirements, &build_stack, None)
             .await
             .map_err(|err| VenvError::Seed(err.into()))?;
         let installed = build_dispatch

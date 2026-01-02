@@ -703,6 +703,20 @@ impl Workspace {
         build_constraints.clone()
     }
 
+    /// Returns the package-specific build constraints for the workspace.
+    ///
+    /// This returns a map from package name to the build constraints that should be applied
+    /// when building that specific package.
+    pub fn build_constraints_package(
+        &self,
+    ) -> Option<&crate::pyproject::BuildConstraintDependenciesPackage> {
+        self.pyproject_toml
+            .tool
+            .as_ref()
+            .and_then(|tool| tool.uv.as_ref())
+            .and_then(|uv| uv.build_constraint_dependencies_package.as_ref())
+    }
+
     /// The path to the workspace root, the directory containing the top level `pyproject.toml` with
     /// the `uv.tool.workspace`, or the `pyproject.toml` in an implicit single workspace project.
     pub fn install_path(&self) -> &PathBuf {

@@ -1792,6 +1792,7 @@ pub(crate) async fn resolve_names(
         &client,
         cache,
         &build_constraints,
+        None, // package_constraints - not yet integrated
         interpreter,
         index_locations,
         &flat_index,
@@ -2028,6 +2029,7 @@ pub(crate) async fn resolve_environment(
         &client,
         cache,
         &build_constraints,
+        None, // package_constraints - not yet integrated
         interpreter,
         index_locations,
         &flat_index,
@@ -2167,6 +2169,7 @@ pub(crate) async fn sync_environment(
         &client,
         cache,
         &build_constraints,
+        None, // package_constraints - not yet integrated
         interpreter,
         index_locations,
         &flat_index,
@@ -2423,6 +2426,7 @@ pub(crate) async fn update_environment(
         &client,
         cache,
         &build_constraints,
+        None, // package_constraints - not yet integrated
         interpreter,
         index_locations,
         &flat_index,

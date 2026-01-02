@@ -23,7 +23,7 @@ use uv_resolver::{
     PrereleaseMode, ResolutionMode,
 };
 use uv_torch::TorchMode;
-use uv_workspace::pyproject::ExtraBuildDependencies;
+use uv_workspace::pyproject::{BuildConstraintDependenciesPackage, ExtraBuildDependencies};
 use uv_workspace::pyproject_mut::AddBoundsKind;
 
 /// A `pyproject.toml` with an (optional) `[tool.uv]` section.
@@ -123,6 +123,9 @@ pub struct Options {
 
     #[cfg_attr(feature = "schemars", schemars(skip))]
     pub build_constraint_dependencies: Option<Vec<Requirement<VerbatimParsedUrl>>>,
+
+    #[cfg_attr(feature = "schemars", schemars(skip))]
+    pub build_constraint_dependencies_package: Option<BuildConstraintDependenciesPackage>,
 
     #[cfg_attr(feature = "schemars", schemars(skip))]
     pub environments: Option<SupportedEnvironments>,
@@ -2157,6 +2160,7 @@ pub struct OptionsWire {
     exclude_dependencies: Option<Vec<PackageName>>,
     constraint_dependencies: Option<Vec<Requirement<VerbatimParsedUrl>>>,
     build_constraint_dependencies: Option<Vec<Requirement<VerbatimParsedUrl>>>,
+    build_constraint_dependencies_package: Option<BuildConstraintDependenciesPackage>,
     environments: Option<SupportedEnvironments>,
     required_environments: Option<SupportedEnvironments>,
 
@@ -2229,6 +2233,7 @@ impl From<OptionsWire> for Options {
             exclude_dependencies,
             constraint_dependencies,
             build_constraint_dependencies,
+            build_constraint_dependencies_package,
             environments,
             required_environments,
             conflicts,
@@ -2305,6 +2310,7 @@ impl From<OptionsWire> for Options {
             exclude_dependencies,
             constraint_dependencies,
             build_constraint_dependencies,
+            build_constraint_dependencies_package,
             environments,
             required_environments,
             install_mirrors: PythonInstallMirrors {

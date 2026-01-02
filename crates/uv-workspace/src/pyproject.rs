@@ -583,6 +583,30 @@ pub struct ToolUv {
     )]
     pub build_constraint_dependencies: Option<Vec<uv_pep508::Requirement<VerbatimParsedUrl>>>,
 
+    /// Constraints to apply when solving build dependencies for specific packages.
+    ///
+    /// Build constraints are used to restrict the versions of build dependencies that are selected
+    /// when building a specific package during resolution or installation. This allows applying
+    /// different constraints for different packages being built.
+    ///
+    /// Including a package as a constraint will _not_ trigger installation of the package during
+    /// a build; instead, the package must be requested elsewhere in the project's build dependency
+    /// graph.
+    ///
+    /// !!! note
+    ///     In `uv lock`, `uv sync`, and `uv run`, uv will only read `build-constraint-dependencies-package` from
+    ///     the `pyproject.toml` at the workspace root, and will ignore any declarations in other
+    ///     workspace members or `uv.toml` files.
+    #[option(
+        default = "{}",
+        value_type = "dict",
+        example = r#"
+            # When building scikits-odes, use setuptools<60 and cython<3 as build constraints.
+            build-constraint-dependencies-package = { scikits-odes = ["setuptools<60", "cython<3"] }
+        "#
+    )]
+    pub build_constraint_dependencies_package: Option<BuildConstraintDependenciesPackage>,
+
     /// A list of supported environments against which to resolve dependencies.
     ///
     /// By default, uv will resolve for all possible environments during a `uv lock` operation.
@@ -875,6 +899,69 @@ impl<'de> serde::de::Deserialize<'de> for ExtraBuildDependencies {
             format!("duplicate extra-build-dependencies for `{key}`")
         })
         .map(ExtraBuildDependencies)
+    }
+}
+
+/// Package-specific build constraint dependencies.
+///
+/// Maps the package being built to the constraints that should be applied to its build dependencies.
+#[derive(Default, Debug, Clone, PartialEq, Eq, Serialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+pub struct BuildConstraintDependenciesPackage(
+    BTreeMap<PackageName, Vec<uv_pep508::Requirement<VerbatimParsedUrl>>>,
+);
+
+impl BuildConstraintDependenciesPackage {
+    /// Returns `true` if there are no package-specific build constraints.
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
+
+impl std::ops::Deref for BuildConstraintDependenciesPackage {
+    type Target = BTreeMap<PackageName, Vec<uv_pep508::Requirement<VerbatimParsedUrl>>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for BuildConstraintDependenciesPackage {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl IntoIterator for BuildConstraintDependenciesPackage {
+    type Item = (PackageName, Vec<uv_pep508::Requirement<VerbatimParsedUrl>>);
+    type IntoIter =
+        std::collections::btree_map::IntoIter<PackageName, Vec<uv_pep508::Requirement<VerbatimParsedUrl>>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl FromIterator<(PackageName, Vec<uv_pep508::Requirement<VerbatimParsedUrl>>)>
+    for BuildConstraintDependenciesPackage
+{
+    fn from_iter<T: IntoIterator<Item = (PackageName, Vec<uv_pep508::Requirement<VerbatimParsedUrl>>)>>(
+        iter: T,
+    ) -> Self {
+        Self(iter.into_iter().collect())
+    }
+}
+
+/// Ensure that all keys in the TOML table are unique.
+impl<'de> serde::de::Deserialize<'de> for BuildConstraintDependenciesPackage {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserialize_unique_map(deserializer, |key: &PackageName| {
+            format!("duplicate build-constraint-dependencies-package for `{key}`")
+        })
+        .map(BuildConstraintDependenciesPackage)
     }
 }
 

@@ -759,6 +759,7 @@ async fn do_lock(
         &client,
         cache,
         &dispatch_constraints,
+        None, // package_constraints - not yet integrated
         interpreter,
         index_locations,
         &flat_index,

@@ -19,6 +19,7 @@ use uv_client::RegistryClient;
 use uv_configuration::{
     BuildKind, BuildOptions, Constraints, IndexStrategy, Reinstall, SourceStrategy,
 };
+use uv_normalize::PackageName;
 use uv_configuration::{BuildOutput, Concurrency};
 use uv_distribution::DistributionDatabase;
 use uv_distribution_filename::DistFilename;
@@ -76,12 +77,18 @@ impl IsBuildBackendError for BuildDispatchError {
     }
 }
 
+/// Package-specific build constraints.
+///
+/// Maps the package being built to the constraints that should be applied to its build dependencies.
+pub type PackageBuildConstraints = FxHashMap<PackageName, Constraints>;
+
 /// The main implementation of [`BuildContext`], used by the CLI, see [`BuildContext`]
 /// documentation.
 pub struct BuildDispatch<'a> {
     client: &'a RegistryClient,
     cache: &'a Cache,
     constraints: &'a Constraints,
+    package_constraints: Option<&'a PackageBuildConstraints>,
     interpreter: &'a Interpreter,
     index_locations: &'a IndexLocations,
     index_strategy: IndexStrategy,
@@ -106,10 +113,12 @@ pub struct BuildDispatch<'a> {
 }
 
 impl<'a> BuildDispatch<'a> {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         client: &'a RegistryClient,
         cache: &'a Cache,
         constraints: &'a Constraints,
+        package_constraints: Option<&'a PackageBuildConstraints>,
         interpreter: &'a Interpreter,
         index_locations: &'a IndexLocations,
         flat_index: &'a FlatIndex,
@@ -134,6 +143,7 @@ impl<'a> BuildDispatch<'a> {
             client,
             cache,
             constraints,
+            package_constraints,
             interpreter,
             index_locations,
             flat_index,
@@ -242,13 +252,34 @@ impl BuildContext for BuildDispatch<'_> {
         &'data self,
         requirements: &'data [Requirement],
         build_stack: &'data BuildStack,
+        for_package: Option<&'data PackageName>,
     ) -> Result<Resolution, BuildDispatchError> {
         let python_requirement = PythonRequirement::from_interpreter(self.interpreter);
         let marker_env = self.interpreter.resolver_marker_environment();
         let tags = self.interpreter.tags()?;
 
+        // Merge global constraints with package-specific constraints if applicable.
+        let constraints = if let (Some(package_constraints), Some(package_name)) =
+            (self.package_constraints, for_package)
+        {
+            if let Some(pkg_constraints) = package_constraints.get(package_name) {
+                // Merge the package-specific constraints with global constraints.
+                // Create a new Constraints from both the global and package-specific requirements.
+                Constraints::from_requirements(
+                    self.constraints
+                        .requirements()
+                        .cloned()
+                        .chain(pkg_constraints.requirements().cloned()),
+                )
+            } else {
+                self.constraints.clone()
+            }
+        } else {
+            self.constraints.clone()
+        };
+
         let resolver = Resolver::new(
-            Manifest::simple(requirements.to_vec()).with_constraints(self.constraints.clone()),
+            Manifest::simple(requirements.to_vec()).with_constraints(constraints),
             OptionsBuilder::new()
                 .exclude_newer(self.exclude_newer.clone())
                 .index_strategy(self.index_strategy)
