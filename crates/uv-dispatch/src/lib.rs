@@ -19,7 +19,6 @@ use uv_client::RegistryClient;
 use uv_configuration::{
     BuildKind, BuildOptions, Constraints, IndexStrategy, Reinstall, SourceStrategy,
 };
-use uv_normalize::PackageName;
 use uv_configuration::{BuildOutput, Concurrency};
 use uv_distribution::DistributionDatabase;
 use uv_distribution_filename::DistFilename;
@@ -30,6 +29,7 @@ use uv_distribution_types::{
 };
 use uv_git::GitResolver;
 use uv_installer::{InstallationStrategy, Installer, Plan, Planner, Preparer, SitePackages};
+use uv_normalize::PackageName;
 use uv_preview::Preview;
 use uv_pypi_types::Conflicts;
 use uv_python::{Interpreter, PythonEnvironment};

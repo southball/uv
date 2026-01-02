@@ -934,8 +934,10 @@ impl std::ops::DerefMut for BuildConstraintDependenciesPackage {
 
 impl IntoIterator for BuildConstraintDependenciesPackage {
     type Item = (PackageName, Vec<uv_pep508::Requirement<VerbatimParsedUrl>>);
-    type IntoIter =
-        std::collections::btree_map::IntoIter<PackageName, Vec<uv_pep508::Requirement<VerbatimParsedUrl>>>;
+    type IntoIter = std::collections::btree_map::IntoIter<
+        PackageName,
+        Vec<uv_pep508::Requirement<VerbatimParsedUrl>>,
+    >;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -945,7 +947,9 @@ impl IntoIterator for BuildConstraintDependenciesPackage {
 impl FromIterator<(PackageName, Vec<uv_pep508::Requirement<VerbatimParsedUrl>>)>
     for BuildConstraintDependenciesPackage
 {
-    fn from_iter<T: IntoIterator<Item = (PackageName, Vec<uv_pep508::Requirement<VerbatimParsedUrl>>)>>(
+    fn from_iter<
+        T: IntoIterator<Item = (PackageName, Vec<uv_pep508::Requirement<VerbatimParsedUrl>>)>,
+    >(
         iter: T,
     ) -> Self {
         Self(iter.into_iter().collect())

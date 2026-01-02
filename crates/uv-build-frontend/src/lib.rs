@@ -524,12 +524,12 @@ impl SourceBuild {
                 if let Some(resolved_requirements) = &*resolution {
                     resolved_requirements.clone()
                 } else {
-                        let resolved_requirements = build_context
-                            .resolve(&DEFAULT_BACKEND.requirements, build_stack, None)
-                            .await
-                            .map_err(|err| {
-                                Error::RequirementsResolve("`setup.py` build", err.into())
-                            })?;
+                    let resolved_requirements = build_context
+                        .resolve(&DEFAULT_BACKEND.requirements, build_stack, None)
+                        .await
+                        .map_err(|err| {
+                            Error::RequirementsResolve("`setup.py` build", err.into())
+                        })?;
                     *resolution = Some(resolved_requirements.clone());
                     resolved_requirements
                 }
